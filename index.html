@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weekend Explorer</title>
+<meta name="description" content="Three quick choices, one real place to go around Lough Neagh, Lisburn and Belfast.">
+<style>
+  :root {
+    --mist: #EEF1EE;
+    --paper: #FFFFFF;
+    --lough: #1F3B4D;
+    --lough-soft: #4A6272;
+    --moss: #3F6B4A;
+    --moss-dark: #2F5238;
+    --peat: #5B4636;
+    --gorse: #F2C230;
+    --line: #C9D3CE;
+    --alert: #9A3412;
+    --sign-text: #1F3B4D;
+    --on-moss: #FFFFFF;
+    --radius: 10px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --mist: #13232D;
+      --paper: #1B3140;
+      --lough: #E6EDEA;
+      --lough-soft: #A9BCC4;
+      --moss: #6FA27B;
+      --moss-dark: #8BBE96;
+      --peat: #8A6F5A;
+      --line: #2F4A5A;
+      --alert: #F4A47C;
+      --on-moss: #10202A;
+      color-scheme: dark;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html {
+    font-size: clamp(16px, 0.9rem + 0.35vw, 21px);
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    margin: 0;
+    background: var(--mist);
+    color: var(--lough);
+    font-family: "Gill Sans", "Gill Sans MT", Seravek, Candara, "Segoe UI", Ubuntu, "DejaVu Sans", sans-serif;
+    line-height: 1.5;
+  }
+
+  .page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 2rem 16px 2.5rem;
+  }
+  @media (min-width: 600px) {
+    .page { padding: 2.75rem 2rem 3rem; }
+  }
+
+  header { margin-bottom: 2rem; max-width: 34rem; }
+  h1 {
+    margin: 0;
+    font-size: clamp(2.1rem, 1.4rem + 3vw, 3.4rem);
+    line-height: 1.05;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .intro {
+    margin: 0.6rem 0 0;
+    font-size: 1.12rem;
+    color: var(--lough-soft);
+  }
+
+  .layout { display: grid; gap: 2rem; }
+  @media (min-width: 960px) {
+    .layout {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+      gap: 3.5rem;
+      align-items: start;
+    }
+    .result-panel { position: sticky; top: 1.5rem; }
+  }
+
+  /* Questions */
+  form { margin: 0; }
+  fieldset {
+    border: 0;
+    margin: 0 0 1.6rem;
+    padding: 0;
+    min-width: 0;
+  }
+  legend {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding: 0;
+    margin-bottom: 0.7rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+  .step {
+    display: inline-grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    border: 2px solid var(--lough);
+    font-size: 0.85rem;
+    flex: none;
+    transform: translateY(-0.1rem);
+  }
+  .options {
+    display: grid;
+    gap: 0.6rem;
+    grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr));
+  }
+  .options.three { --cols: 3; }
+  @media (max-width: 420px) {
+    .options.three { --cols: 1; }
+    .options.three .tile { flex-direction: row; justify-content: flex-start; min-height: 3.4rem; }
+  }
+
+  .choice { position: relative; display: flex; }
+  .choice .tile { flex: 1; }
+  .choice input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+  .tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 5.2rem;
+    padding: 0.7rem 0.6rem;
+    border: 2px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper);
+    font-size: 1.05rem;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
+  }
+  .tile svg { width: 1.7rem; height: 1.7rem; flex: none; }
+  .glyph { font-size: 1.45rem; line-height: 1; font-weight: 700; }
+  .choice input:hover + .tile { border-color: var(--moss); }
+  .choice input:checked + .tile {
+    background: var(--moss);
+    border-color: var(--moss);
+    color: var(--on-moss);
+  }
+  .choice input:focus-visible + .tile {
+    outline: 3px solid var(--gorse);
+    outline-offset: 3px;
+  }
+  fieldset.needs-answer .tile { border-color: var(--alert); border-style: dashed; }
+
+  .actions-row { margin-top: 0.4rem; }
+  .btn {
+    appearance: none;
+    font: inherit;
+    font-weight: 700;
+    font-size: 1.08rem;
+    border-radius: var(--radius);
+    padding: 0.85rem 1.4rem;
+    min-height: 3.2rem;
+    cursor: pointer;
+    border: 2px solid var(--moss);
+    white-space: nowrap;
+    transition: background-color 120ms ease, color 120ms ease;
+  }
+  .btn:focus-visible { outline: 3px solid var(--gorse); outline-offset: 3px; }
+  .btn-primary { background: var(--moss); color: var(--on-moss); }
+  .btn-primary:hover { background: var(--moss-dark); border-color: var(--moss-dark); }
+  .btn-secondary { background: transparent; color: var(--lough); border-color: var(--lough-soft); }
+  .btn-secondary:hover { background: var(--paper); }
+  #find-btn { width: 100%; }
+  @media (min-width: 600px) { #find-btn { width: auto; min-width: 14rem; } }
+
+  .form-message {
+    margin: 0.75rem 0 0;
+    min-height: 1.5em;
+    color: var(--alert);
+    font-weight: 600;
+  }
+
+  /* Result: the fingerpost */
+  .result-panel { scroll-margin-top: 1rem; }
+  .signpost { position: relative; padding-bottom: 2.4rem; }
+  .signpost::after {
+    content: "";
+    position: absolute;
+    left: 1.6rem;
+    bottom: 0;
+    width: 0.9rem;
+    height: 2.4rem;
+    background: var(--peat);
+    border-radius: 0 0 3px 3px;
+  }
+  .sign {
+    position: relative;
+    z-index: 1;
+    background: var(--gorse);
+    color: var(--sign-text);
+    padding: 1.1rem 3.4rem 1.2rem 1.4rem;
+    clip-path: polygon(0 0, calc(100% - 2.2rem) 0, 100% 50%, calc(100% - 2.2rem) 100%, 0 100%);
+    border-radius: 4px 0 0 4px;
+    min-height: 7rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .sign:focus { outline: none; }
+  .sign-name {
+    margin: 0;
+    font-size: clamp(1.7rem, 1.2rem + 2vw, 2.5rem);
+    line-height: 1.1;
+    font-weight: 700;
+  }
+  .sign-area {
+    margin: 0.3rem 0 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+  .signpost.empty .sign {
+    background: transparent;
+    color: var(--lough-soft);
+    clip-path: none;
+    border: 2px dashed var(--line);
+    border-radius: var(--radius);
+    padding-right: 1.4rem;
+  }
+  .signpost.empty::after { background: var(--line); }
+  .signpost.empty .sign-name { font-size: 1.45rem; }
+
+  .swing { animation: swing 520ms cubic-bezier(.2,.9,.3,1.2); transform-origin: 1.9rem 100%; }
+  @keyframes swing {
+    0% { transform: rotate(-7deg); opacity: 0; }
+    60% { transform: rotate(1.5deg); opacity: 1; }
+    100% { transform: rotate(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .swing { animation: none; }
+    .tile, .btn { transition: none; }
+  }
+
+  .details { margin-top: 1.3rem; }
+  .why { margin: 0; font-size: 1.15rem; max-width: 36rem; }
+  .tags { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 1rem 0 0; padding: 0; list-style: none; }
+  .tags li {
+    border: 1.5px solid var(--lough-soft);
+    border-radius: 999px;
+    padding: 0.15rem 0.75rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+  .note {
+    margin: 1rem 0 0;
+    padding-left: 0.85rem;
+    border-left: 4px solid var(--peat);
+    font-size: 0.98rem;
+  }
+  .count { margin: 1rem 0 0; font-size: 0.95rem; color: var(--lough-soft); }
+  .result-actions { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.3rem; }
+  .result-actions .btn { flex: 1 1 11rem; }
+  .inline-message { margin: 0.8rem 0 0; min-height: 1.5em; font-weight: 600; color: var(--lough-soft); }
+
+  [hidden] { display: none !important; }
+  .visually-hidden {
+    position: absolute !important;
+    width: 1px; height: 1px;
+    margin: -1px; padding: 0; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.9rem;
+    color: var(--lough-soft);
+    max-width: 44rem;
+  }
+  footer p { margin: 0; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>Weekend Explorer</h1>
+    <p class="intro">Answer three questions and get a real place to go around Lough Neagh, Lisburn and Belfast.</p>
+  </header>
+
+  <main class="layout">
+    <form id="choices" novalidate>
+      <fieldset id="q-setting">
+        <legend><span class="step" aria-hidden="true">1</span>Indoors or outdoors?</legend>
+        <div class="options">
+          <label class="choice">
+            <input type="radio" name="setting" value="indoor">
+            <span class="tile">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-5h4v5"/></svg>
+              Indoors
+            </span>
+          </label>
+          <label class="choice">
+            <input type="radio" name="setting" value="outdoor">
+            <span class="tile">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 6.5 11h3L5.5 17h13l-4-6h3z"/><path d="M12 17v4"/></svg>
+              Outdoors
+            </span>
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset id="q-who">
+        <legend><span class="step" aria-hidden="true">2</span>Who's going?</legend>
+        <div class="options three">
+          <label class="choice">
+            <input type="radio" name="who" value="solo">
+            <span class="tile">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1-4 3.8-6 7-6s6 2 7 6"/></svg>
+              Just me
+            </span>
+          </label>
+          <label class="choice">
+            <input type="radio" name="who" value="couple">
+            <span class="tile">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="3"/><circle cx="16.2" cy="8.2" r="2.6"/><path d="M3 20c.8-3.6 3-5.5 5.5-5.5S13.2 16.4 14 20"/><path d="M14.6 13.4c.5-.1 1-.2 1.6-.2 2.3 0 4.2 1.8 4.8 4.8"/></svg>
+              Two of us
+            </span>
+          </label>
+          <label class="choice">
+            <input type="radio" name="who" value="family">
+            <span class="tile">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="6.5" r="2.6"/><circle cx="16.5" cy="10.8" r="2"/><path d="M3.8 20c.5-4 2.1-6.6 4.2-6.6s3.7 2.6 4.2 6.6"/><path d="M13 20c.4-2.6 1.7-4.4 3.5-4.4S19.6 17.4 20 20"/></svg>
+              Family with kids
+            </span>
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset id="q-cost">
+        <legend><span class="step" aria-hidden="true">3</span>What's the budget?</legend>
+        <div class="options">
+          <label class="choice">
+            <input type="radio" name="cost" value="free">
+            <span class="tile"><span class="glyph" aria-hidden="true">£0</span>Free</span>
+          </label>
+          <label class="choice">
+            <input type="radio" name="cost" value="paid">
+            <span class="tile"><span class="glyph" aria-hidden="true">£</span>Happy to pay</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="actions-row">
+        <button type="submit" class="btn btn-primary" id="find-btn">Find a place</button>
+        <p class="form-message" id="form-message" role="alert"></p>
+      </div>
+    </form>
+
+    <section class="result-panel" id="result-panel" aria-labelledby="sign-name">
+      <div class="signpost empty" id="signpost">
+        <div class="sign" id="sign" tabindex="-1">
+          <h2 class="sign-name" id="sign-name">Your place will appear here</h2>
+          <p class="sign-area" id="sign-area">Answer the three questions, then choose Find a place.</p>
+        </div>
+      </div>
+
+      <div class="details" id="details" hidden>
+        <p class="why" id="why"></p>
+        <ul class="tags" id="tags"></ul>
+        <p class="note" id="note" hidden></p>
+        <p class="count" id="count"></p>
+        <div class="result-actions">
+          <button type="button" class="btn btn-primary" id="another-btn">Show me another</button>
+          <button type="button" class="btn btn-secondary" id="reset-btn">Start again</button>
+        </div>
+        <p class="inline-message" id="inline-message" aria-live="polite"></p>
+      </div>
+      <p class="visually-hidden" id="announcer" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <footer>
+    <p>Places checked in October 2026. Opening times, prices and seasonal closures change, so check the venue's own website before you set off.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // Each place: where it is, indoor/outdoor, who it suits, free/paid,
+  // one line on why it fits, and an optional "before you go" note.
+  var PLACES = [
+    // Outdoors, free
+    { name: "Antrim Castle Gardens", area: "Antrim", setting: "outdoor", cost: "free", who: ["solo", "couple", "family"],
+      why: "Centuries-old gardens on the edge of Antrim town, with flat paths, a long ornamental pond and plenty of room to wander.",
+      note: "Open every day, closing at 5pm." },
+    { name: "Lough Shore Park", area: "Antrim", setting: "outdoor", cost: "free", who: ["solo", "couple", "family"],
+      why: "Wide views across Lough Neagh, a lakeside path and a play park right at the water's edge.",
+      note: "" },
+    { name: "Cave Hill Country Park", area: "North Belfast", setting: "outdoor", cost: "free", who: ["solo", "couple", "family"],
+      why: "Woodland and hill paths above Belfast Castle, with views over the city and Belfast Lough.",
+      note: "Part of the Cavehill Trail is closed because of erosion, so follow the signs. The park closes at 4.30pm from late November." },
+    { name: "Wallace Park", area: "Lisburn", setting: "outdoor", cost: "free", who: ["couple", "family"],
+      why: "Lisburn's town park, with a playground, a duck pond and easy paths for little legs.",
+      note: "Open 9am to 5pm in winter." },
+    { name: "Lagan Towpath", area: "Lisburn to Belfast", setting: "outdoor", cost: "free", who: ["solo", "couple", "family"],
+      why: "A flat riverside path of about 11 miles between Lisburn and Belfast. Walk or cycle as much or as little as you like.",
+      note: "Check for maintenance closures before you set off." },
+    { name: "RSPB Portmore Lough", area: "Near Aghalee", setting: "outdoor", cost: "free", who: ["solo", "couple", "family"],
+      why: "A quiet wetland reserve on the shore of Lough Neagh, with a level trail and swans in winter.",
+      note: "If the car park gate is locked, park outside it." },
+    { name: "Divis and the Black Mountain", area: "Belfast Hills", setting: "outdoor", cost: "free", who: ["solo", "couple"],
+      why: "Upland walking on the highest of the Belfast Hills, with big views on a clear day.",
+      note: "The upper car park and café are closed until spring 2027. Use the small lower car park." },
+    { name: "Botanic Gardens", area: "South Belfast", setting: "outdoor", cost: "free", who: ["solo", "couple", "family"],
+      why: "City gardens beside Queen's University, with lawns and a rose garden for a gentle stroll.",
+      note: "Closes at 4.30pm from late November." },
+    { name: "Crumlin Glen", area: "Crumlin", setting: "outdoor", cost: "free", who: ["solo", "couple"],
+      why: "A short wooded river walk close to Glenavy, good for a quick leg-stretch.",
+      note: "Some sections are steep and off-road. Gates are open 8am to 6pm in winter." },
+    { name: "Colin Glen Forest Park", area: "West Belfast", setting: "outdoor", cost: "free", who: ["solo", "couple", "family"],
+      why: "A forest park with river walks and a free Gruffalo trail that younger children love.",
+      note: "The coaster, ziplines and other activities cost extra." },
+
+    // Outdoors, paid
+    { name: "Belfast Zoo", area: "North Belfast", setting: "outdoor", cost: "paid", who: ["solo", "couple", "family"],
+      why: "A hillside zoo on the slopes of Cave Hill, with animals from around the world and views over the lough.",
+      note: "Open 10am to 4pm, with last entry at 2.30pm." },
+    { name: "Hillsborough Castle and Gardens", area: "Hillsborough", setting: "outdoor", cost: "paid", who: ["solo", "couple", "family"],
+      why: "Landscaped gardens and woodland walks around Northern Ireland's royal residence.",
+      note: "Usually open Wednesday to Sunday. Check winter opening days before you go." },
+    { name: "Colin Glen coaster and ziplines", area: "West Belfast", setting: "outdoor", cost: "paid", who: ["solo", "couple", "family"],
+      why: "An alpine coaster, ziplines and a treetop course in a forest park, for a bit of adrenaline.",
+      note: "Book a time slot. Winter hours are shorter, especially at weekends." },
+    { name: "Ulster Folk Museum", area: "Cultra, near Holywood", setting: "outdoor", cost: "paid", who: ["solo", "couple", "family"],
+      why: "Wander through old Ulster houses, shops, a school and farms rebuilt across open countryside.",
+      note: "Closed on Mondays until the end of February." },
+
+    // Indoors, free
+    { name: "Ulster Museum", area: "South Belfast", setting: "indoor", cost: "free", who: ["solo", "couple", "family"],
+      why: "Art, local history and natural science under one roof, right beside the Botanic Gardens.",
+      note: "Closed on Mondays." },
+    { name: "Irish Linen Centre & Lisburn Museum", area: "Lisburn", setting: "indoor", cost: "free", who: ["solo", "couple", "family"],
+      why: "The story of Ulster's linen trade and Lisburn's past, in the middle of the town.",
+      note: "Open Monday to Saturday, so go on the Saturday." },
+    { name: "Palm House and Tropical Ravine", area: "Botanic Gardens, Belfast", setting: "indoor", cost: "free", who: ["solo", "couple", "family"],
+      why: "Victorian glasshouses full of tropical plants, warm and green even on a grey day.",
+      note: "Open about 10am to 3.30pm, with last entry at 3.15pm." },
+    { name: "Clotworthy House", area: "Antrim", setting: "indoor", cost: "free", who: ["solo", "couple"],
+      why: "An arts centre in a historic house with free gallery exhibitions, right beside Antrim Castle Gardens.",
+      note: "Some events are ticketed." },
+    { name: "St George's Market", area: "Belfast city centre", setting: "indoor", cost: "free", who: ["solo", "couple", "family"],
+      why: "A Victorian covered market with food stalls, crafts and local produce, free to wander round.",
+      note: "Runs Friday to Sunday only, and closes at 2pm or 3pm." },
+
+    // Indoors, paid
+    { name: "Titanic Belfast", area: "Titanic Quarter, Belfast", setting: "indoor", cost: "paid", who: ["solo", "couple", "family"],
+      why: "Galleries telling the story of the Titanic and the shipyard that built it, on the site where it was launched.",
+      note: "Book online. Last entry is well before closing time." },
+    { name: "W5", area: "Odyssey, Belfast", setting: "indoor", cost: "paid", who: ["family"],
+      why: "A hands-on science centre packed with exhibits to push, build and climb.",
+      note: "Booking ahead is essential." },
+    { name: "Crumlin Road Gaol", area: "North Belfast", setting: "indoor", cost: "paid", who: ["solo", "couple"],
+      why: "Tour a Victorian prison, from the cells to the tunnel that once led to the courthouse.",
+      note: "Booking online is cheaper. Best for adults and older children." },
+    { name: "Ulster Transport Museum", area: "Cultra, near Holywood", setting: "indoor", cost: "paid", who: ["solo", "couple", "family"],
+      why: "Steam engines, trams, cars and aircraft in big halls you can wander round at your own pace.",
+      note: "Closed on Mondays." },
+    { name: "Belfast City Hall tour", area: "Belfast city centre", setting: "indoor", cost: "paid", who: ["solo", "couple", "family"],
+      why: "A guided tour of the grand halls and council chamber of Belfast's landmark building.",
+      note: "Buy tickets on the day at reception (card only). In winter, tours run on Sundays but not Saturdays. Children go free but need a ticket." },
+    { name: "Lagan Valley LeisurePlex", area: "Lisburn", setting: "indoor", cost: "paid", who: ["family"],
+      why: "A leisure pool with slides for a splashy afternoon with the kids.",
+      note: "Book slide sessions online, up to seven days ahead." },
+    { name: "Lyric Theatre", area: "Stranmillis, Belfast", setting: "indoor", cost: "paid", who: ["solo", "couple"],
+      why: "Belfast's riverside playhouse, good for an evening of drama.",
+      note: "Check what's on and book ahead." },
+    { name: "Grand Opera House", area: "Belfast city centre", setting: "indoor", cost: "paid", who: ["solo", "couple", "family"],
+      why: "A Victorian theatre for musicals, comedy and drama, including family shows.",
+      note: "Check what's on first. The box office is closed on Sundays." }
+  ];
+
+  var QUESTIONS = [
+    { name: "setting", label: "Indoors or outdoors?", fieldset: "q-setting" },
+    { name: "who", label: "Who's going?", fieldset: "q-who" },
+    { name: "cost", label: "What's the budget?", fieldset: "q-cost" }
+  ];
+  var LABELS = {
+    indoor: "Indoors", outdoor: "Outdoors",
+    free: "Free entry", paid: "Paid entry",
+    solo: "Good on your own", couple: "Good for two", family: "Good for families"
+  };
+
+  var form = document.getElementById("choices");
+  var formMessage = document.getElementById("form-message");
+  var panel = document.getElementById("result-panel");
+  var signpost = document.getElementById("signpost");
+  var sign = document.getElementById("sign");
+  var signName = document.getElementById("sign-name");
+  var signArea = document.getElementById("sign-area");
+  var details = document.getElementById("details");
+  var why = document.getElementById("why");
+  var tags = document.getElementById("tags");
+  var note = document.getElementById("note");
+  var count = document.getElementById("count");
+  var inlineMessage = document.getElementById("inline-message");
+  var announcer = document.getElementById("announcer");
+  var anotherBtn = document.getElementById("another-btn");
+  var resetBtn = document.getElementById("reset-btn");
+
+  var reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var order = [];
+  var position = 0;
+  var showing = false;
+
+  function getChoices() {
+    var choices = {};
+    QUESTIONS.forEach(function (q) {
+      var picked = form.querySelector('input[name="' + q.name + '"]:checked');
+      choices[q.name] = picked ? picked.value : null;
+    });
+    return choices;
+  }
+
+  function matchesFor(c) {
+    return PLACES.filter(function (p) {
+      return p.setting === c.setting && p.cost === c.cost && p.who.indexOf(c.who) !== -1;
+    });
+  }
+
+  function shuffle(list) {
+    var a = list.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function clearMissing() {
+    formMessage.textContent = "";
+    QUESTIONS.forEach(function (q) {
+      document.getElementById(q.fieldset).classList.remove("needs-answer");
+    });
+  }
+
+  function showMissing(missing) {
+    QUESTIONS.forEach(function (q) {
+      document.getElementById(q.fieldset).classList.toggle("needs-answer", missing.indexOf(q) !== -1);
+    });
+    var names = missing.map(function (q) { return q.label; });
+    formMessage.textContent = "Choose an answer for: " + names.join(" and ");
+    var first = document.querySelector("#" + missing[0].fieldset + " input");
+    if (first) first.focus();
+  }
+
+  function showEmpty() {
+    showing = false;
+    order = [];
+    position = 0;
+    signpost.classList.add("empty");
+    signName.textContent = "Your place will appear here";
+    signArea.textContent = "Answer the three questions, then choose Find a place.";
+    details.hidden = true;
+    inlineMessage.textContent = "";
+    announcer.textContent = "";
+  }
+
+  function swing() {
+    if (reducedMotion) return;
+    signpost.classList.remove("swing");
+    void signpost.offsetWidth; // restart the animation
+    signpost.classList.add("swing");
+  }
+
+  function render(c) {
+    showing = true;
+    details.hidden = false;
+    inlineMessage.textContent = "";
+
+    if (!order.length) {
+      signpost.classList.add("empty");
+      signName.textContent = "Nothing fits all three yet";
+      signArea.textContent = "Try changing one of your answers.";
+      why.textContent = "";
+      tags.innerHTML = "";
+      note.hidden = true;
+      count.textContent = "";
+      anotherBtn.hidden = true;
+      announcer.textContent = "No places fit those choices. Try changing one of your answers.";
+      return;
+    }
+
+    var place = order[position];
+    signpost.classList.remove("empty");
+    signName.textContent = place.name;
+    signArea.textContent = place.area;
+    why.textContent = place.why;
+
+    tags.innerHTML = "";
+    [LABELS[place.setting], LABELS[place.cost], LABELS[c.who]].forEach(function (text) {
+      var li = document.createElement("li");
+      li.textContent = text;
+      tags.appendChild(li);
+    });
+
+    if (place.note) {
+      note.textContent = "Before you go: " + place.note;
+      note.hidden = false;
+    } else {
+      note.hidden = true;
+    }
+
+    anotherBtn.hidden = false;
+    count.textContent = order.length === 1
+      ? "This is the only place that fits your answers."
+      : "Place " + (position + 1) + " of " + order.length + " that fit your answers.";
+
+    announcer.textContent = "Suggestion: " + place.name + ", " + place.area + ".";
+    swing();
+  }
+
+  function find(moveFocus) {
+    var c = getChoices();
+    var missing = QUESTIONS.filter(function (q) { return !c[q.name]; });
+    if (missing.length) {
+      showMissing(missing);
+      return;
+    }
+    clearMissing();
+    order = shuffle(matchesFor(c));
+    position = 0;
+    render(c);
+    if (moveFocus) {
+      sign.focus({ preventScroll: true });
+      if (window.innerWidth < 960) {
+        panel.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+      }
+    }
+  }
+
+  function showAnother() {
+    var c = getChoices();
+    if (!order.length) return;
+    if (order.length === 1) {
+      inlineMessage.textContent = "That's the only place on the list for these answers. Try changing one.";
+      return;
+    }
+    position += 1;
+    if (position >= order.length) {
+      // Been through them all: reshuffle, but never repeat the one just shown.
+      var last = order[order.length - 1];
+      order = shuffle(order);
+      if (order[0] === last) {
+        var k = 1 + Math.floor(Math.random() * (order.length - 1));
+        order[0] = order[k];
+        order[k] = last;
+      }
+      position = 0;
+    }
+    render(c);
+  }
+
+  function startAgain() {
+    form.reset();
+    clearMissing();
+    showEmpty();
+    window.scrollTo({ top: 0, behavior: reducedMotion ? "auto" : "smooth" });
+    var first = form.querySelector("input");
+    if (first) first.focus({ preventScroll: true });
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    find(true);
+  });
+
+  form.addEventListener("change", function (e) {
+    var q = QUESTIONS.filter(function (x) { return x.name === e.target.name; })[0];
+    if (q) document.getElementById(q.fieldset).classList.remove("needs-answer");
+    if (!form.querySelector("fieldset.needs-answer")) formMessage.textContent = "";
+    // If a suggestion is already showing, update it to match the new answers.
+    if (showing) find(false);
+  });
+
+  anotherBtn.addEventListener("click", showAnother);
+  resetBtn.addEventListener("click", startAgain);
+})();
+</script>
+</body>
+</html>
